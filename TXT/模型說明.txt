@@ -1,0 +1,275 @@
+處理組（Treatment Group）
+處理組是那些受到政策（Policy）或疫情（Pandemic）影響的觀測值：
+data['treatment'] = ((data['Policy'] == 1) | (data['Pandemic'] == 1)).astype(int)
+treatment 變數為 1 的觀測值屬於處理組，即在政策或疫情期間的觀測值。
+
+對照組（Control Group）
+對照組是那些沒有受到政策或疫情影響的觀測值：
+treatment 變數為 0 的觀測值屬於對照組，即不在政策或疫情期間的觀測值。
+
+時間維度的分組
+除了處理組和對照組，還有時間上的分組，即在2020年及以後的觀測值與之前的觀測值：
+data['post'] = (data['PlayYear'] >= 2020).astype(int)
+post 變數為 1 的觀測值屬於 "後期"（即2020年及以後），為 0 的觀測值屬於 "前期"（即2020年以前）。
+
+結合處理組和時間分組
+在DID模型中，處理組和對照組的劃分依據處理效果和時間分組的交互項來判定：
+
+did_formula = '''
+    Log_Audience ~ treatment * post + Tempture + Rainfall + Weekend +
+    Director_Award + Producer_Famous + Budget + Actor_Awardall + IMDb_rating +
+    Oscar_Nom + Cannes_Nom + GHA_Nom + GHA_AwardTotal + TFF_Nom + TFF_AwardTotal +
+    lnsubsidy + CSP + SD + SpecialCondition + Drama_Comedy + Action_Comedy +
+    Typhoon + Earthquake + Policy + Festival + Promotion + Pandemic + Temp_Spring +
+    Temp_Summer + Temp_Winter + Rain_Spring + Rain_Summer + Rain_Winter
+'''
+did_model = smf.ols(did_formula, data=data).fit()
+
+這裡使用了 treatment * post 交互項來捕捉處理組在不同時間段的效果。具體來說：
+treatment = 1 且 post = 1：代表處理組在2020年及以後。
+treatment = 1 且 post = 0：代表處理組在2020年以前。
+treatment = 0 且 post = 1：代表對照組在2020年及以後。
+treatment = 0 且 post = 0：代表對照組在2020年以前。
+
+總結：
+處理組：treatment = 1（受到政策或疫情影響的觀測值）。
+對照組：treatment = 0（未受到政策或疫情影響的觀測值）。
+後期：post = 1（2020年及以後的觀測值）。
+前期：post = 0（2020年以前的觀測值）。
+
+基本模型（OLS Regression Results）
+Audience (觀眾數量): 係數為0.0052，表示觀眾數量每增加一個單位，Log_Audience 增加0.0052。這個結果顯示出觀眾數量對Log_Audience有顯著的正向影響。
+
+Tempture (溫度): 係數為-0.0018，但不顯著 (P值為0.255)，表明溫度對Log_Audience沒有顯著影響。
+
+Rainfall (降雨量): 係數為-0.0021，且顯著 (P值為0.000)，表明降雨量對Log_Audience有顯著的負面影響。
+
+Play_nWeek (上映週數): 係數為-0.0120，顯著 (P值為0.000)，表明上映週數增加會導致Log_Audience減少。
+
+Weekend (週末): 係數為0.3610，顯著 (P值為0.000)，表明在週末上映會顯著增加Log_Audience。
+
+Director_Award (導演獲獎): 係數為-0.0417，顯著 (P值為0.000)，表明導演獲獎對Log_Audience有負面影響，這可能反映了某些導演獲獎影片的市場吸引力較低。
+
+Producer_Famous (知名製片人): 係數為-0.0926，顯著 (P值為0.000)，表明知名製片人對Log_Audience有負面影響，可能是因為知名製片人參與的電影並不一定能夠吸引更多觀眾。
+
+Budget (預算): 係數為1.508e-08，顯著 (P值為0.000)，表明預算增加會顯著提高Log_Audience。
+
+其他變數: 包括 Actor_Awardall、IMDb_rating、Oscar_Nom、Cannes_Nom 等，這些變數對 Log_Audience 也有顯著影響。
+
+差異中的差異模型（DID）
+Intercept (截距): 係數為0.8117，顯著 (P值為0.000)，代表在沒有處理和時間變數影響下的基礎水平。
+
+treatment (處理): 係數為0.8117，顯著 (P值為0.000)，表明受到政策或疫情影響的觀測值對Log_Audience有顯著正向影響。
+
+post (後期): 係數為-0.1194，顯著 (P值為0.007)，表明2020年及以後的時間段對Log_Audience有顯著負向影響。
+
+treatment
+(交互項): 係數為-0.1194，顯著 (P值為0.007)，表明處理組在後期相比於前期有顯著的負面影響，這意味著政策或疫情在2020年及以後對觀眾數量的影響是負面的。
+
+Tempture (溫度): 係數為0.0119，顯著 (P值為0.000)，表明溫度對Log_Audience有顯著的正向影響，這與基本模型中的結果不同。
+
+Weekend (週末): 係數為0.5937，顯著 (P值為0.000)，表明週末上映對Log_Audience有顯著的正向影響。
+
+其他變數: 多數變數如 IMDb_rating、Oscar_Nom 等在模型中也是顯著的，並且對Log_Audience有預期的影響。
+
+總結
+週末和較高的 IMDb 評分、奧斯卡提名等對於提升電影觀眾數量有顯著正向影響。
+降雨量和某些獲獎導演或知名製片人的電影，可能因為類型或其他因素對觀眾吸引力有限，反而有負面影響。
+在差異中的差異模型中，處理組在後期相比前期的影響顯著負向，這意味著政策或疫情在2020年及以後對觀眾數量有不利影響。
+這些結果提供了對於不同因素如何影響電影觀眾數量的洞見，有助於在制定電影市場策略時考慮這些變數的影響。
+------------------------------------------------------
+
+分量迴歸：處理不同分量的票房
+在不同的分位數下探索不同因素對電影觀眾數量（Log_Audience）的影響：
+
+創建所需的變數：
+data['CSP'] = ((data['PlayYear'] == 2020) & (data['PlayMonth'].between(3, 6))).astype(int)（梅花座政策）
+data['SD'] = ((data['PlayYear'] == 2020) & (data['PlayMonth'].between(4, 6))).astype(int)（社交距離政策）
+data['SpecialCondition'] = ((data['PlayYear'] == 2020) & (data['PlayMonth'].between(1, 4))).astype(int) （特殊情況）
+data['Drama_Comedy'] = ((data['Class_Darma'] == 1) & (data['Class_Comedy'] == 1)).astype(int) （同時為劇情和喜劇）
+data['Action_Comedy'] = ((data['Class_Action'] == 1) & (data['Class_Comedy'] == 1)).astype(int) （同時為動作和喜劇）
+
+定義特定日期範圍的事件：
+
+typhoon_dates = [('2017-07-01', '2017-07-05'), ...] 颱風
+earthquake_dates = [('2018-02-06', '2018-02-08'), ...] 地震
+policy_dates = [('2017-01-01', '2017-12-31'), ...] 政策通常為影響一整年
+festival_dates = [('2017-01-01', '2017-02-28'), ...] 國訂假日
+promotion_dates = [('2017-07-01', '2017-07-31'), ...] 暑假電影節促銷、暑假強檔
+pandemic_dates = [('2020-01-21', '2020-12-31'), ...] 疫情發生
+
+定義函數 in_dates 來檢查某一行的日期是否在特定範圍內：
+
+def in_dates(row, date_ranges):
+    play_date = f"{int(row['PlayYear'])}-{int(row['PlayMonth']):02d}-01"
+    for start, end in date_ranges:
+        if start <= play_date <= end:
+            return 1
+    return 0
+應用 in_dates 函數以創建表示特定事件發生的變數：
+
+data['Typhoon'] = data.apply(lambda row: in_dates(row, typhoon_dates), axis=1)
+data['Earthquake'] = data.apply(lambda row: in_dates(row, earthquake_dates), axis=1)
+data['Policy'] = data.apply(lambda row: in_dates(row, policy_dates), axis=1)
+data['Festival'] = data.apply(lambda row: in_dates(row, festival_dates), axis=1)
+data['Promotion'] = data.apply(lambda row: in_dates(row, promotion_dates), axis=1)
+data['Pandemic'] = data.apply(lambda row: in_dates(row, pandemic_dates), axis=1)
+
+創建 Season 變數並轉換為虛擬變數：
+data['Season'] = data['PlayMonth'].apply(lambda x: 'Spring' if x in [3, 4, 5] else ('Summer' if x in [6, 7, 8] else ('Autumn' if x in [9, 10, 11] else 'Winter')))
+data = pd.get_dummies(data, columns=['Season'], drop_first=True)
+
+新增季節性效果
+
+創建季節和溫度、降雨交互項：
+
+data['Temp_Spring'] = data['Tempture'] * data['Season_Spring']
+data['Temp_Summer'] = data['Tempture'] * data['Season_Summer']
+data['Temp_Winter'] = data['Tempture'] * data['Season_Winter']
+data['Rain_Spring'] = data['Rainfall'] * data['Season_Spring']
+data['Rain_Summer'] = data['Rainfall'] * data['Season_Summer']
+data['Rain_Winter'] = data['Rainfall'] * data['Season_Winter']
+
+創建 Log_Audience 變數：將票數取對數（為何不選票房因為每間電影院票價不一樣），因為票數為右偏將其取對數後較符合常態
+data['Log_Audience'] = data['Audience'].apply(lambda x: np.log(x + 1))
+
+創建交互項： 看有無缺失值和該變數的交互作用
+data['Subsidy_Yes:lnbudget'] = data['Subsidy_Yes'] * data['lnbudget']
+data['Subsidy_Yes:lnsubsidy'] = data['Subsidy_Yes'] * data['lnsubsidy']
+data['No_Budget:lnbudget'] = data['No_Budget'] * data['lnbudget']
+data['No_IMDb:IMDb_rating'] = data['No_IMDb'] * data['IMDb_rating']
+data['No_GHA:GHA_Nom'] = data['No_GHA'] * data['GHA_Nom']
+data['No_GHA:GHA_AwardTotal'] = data['No_GHA'] * data['GHA_AwardTotal']
+data['No_TFF:TFF_Nom'] = data['No_TFF'] * data['TFF_Nom']
+data['No_TFF:TFF_AwardTotal'] = data['No_TFF'] * data['TFF_AwardTotal']
+
+
+建議：
+
+票價 (Ticket_Price)：
+票價的變化可能會影響觀眾數量，特別是在促銷期間或節假日期間。
+
+競爭影片 (Competing_Movies)：
+同一時間段內上映的其他影片數量和它們的影響力。
+
+社交媒體評價 (Social_Media_Rating)：
+社交媒體上的評價和討論度，如 Twitter 和 Facebook 上的評論數量和情感分析結果。
+
+經濟狀況 (Economic_Conditions)：
+當前經濟狀況，如失業率和消費者信心指數等。
+
+
+0.25 分量回歸結果解釋
+
+Pseudo R-squared: 0.08585，表示模型對數據的擬合程度。
+Bandwidth: 0.1430，表示模型使用的帶寬。
+No. Observations: 74232，表示觀察樣本數。
+Df Model: 38，表示模型中變數的數量。
+
+顯著變數
+
+Weekend (週末): 0.5770，顯著 (P值為 0.000)，表明在週末上映會顯著增加Log_Audience，特別是在較低的觀眾數量下。
+lnbudget (預算的對數): 0.0953，顯著 (P值為 0.000)，表明預算的對數增加會顯著增加Log_Audience。
+Director_Award (導演獲獎): -0.0945，顯著 (P值為 0.000)，表明導演獲獎對Log_Audience有顯著的負面影響。
+Producer_Famous (知名製片人): -0.1727，顯著 (P值為 0.000)，表明知名製片人對Log_Audience有顯著的負面影響。
+IMDb_rating (IMDb評分): 0.1006，顯著 (P值為 0.000)，表明較高的 IMDb 評分會顯著增加Log_Audience。
+GHA_Nom (金馬獎提名數量): 0.0225，顯著 (P值為 0.000)，表明金馬獎提名數量增加會顯著增加Log_Audience。
+TFF_Nom (台北電影節提名數量): 0.0248，顯著 (P值為 0.000)，表明台北電影節提名數量增加會顯著增加Log_Audience。
+GHA_AwardTotal (金馬獎獲獎總數): 0.0259，顯著 (P值為 0.046)，表明金馬獎獲獎總數增加會顯著增加Log_Audience。
+lnsubsidy (補助金的對數): -0.1116，顯著 (P值為 0.000)，表明補助金的對數增加會顯著降低Log_Audience。
+CSP: 0.4736，顯著 (P值為 0.000)，表明這段期間對Log_Audience有顯著的正向影響。
+SD: -1.4527，顯著 (P值為 0.000)，表明這段期間對Log_Audience有顯著的負向影響。
+SpecialCondition (特殊情況): 0.1312，顯著 (P值為 0.023)，表明特殊情況對Log_Audience有顯著的正向影響。
+Typhoon (颱風): -0.1201，顯著 (P值為 0.003)，表明颱風期間Log_Audience顯著下降。
+Earthquake (地震): 1.053e-08，顯著 (P值為 0.012)，表明地震期間Log_Audience顯著下降。
+Policy (政策): 254.8674，顯著 (P值為 0.000)，表明政策期間Log_Audience顯著增加。
+Festival (節日): 0.1938，顯著 (P值為 0.000)，表明節日期間Log_Audience顯著增加。
+Pandemic (疫情): 0.1987，顯著 (P值為 0.000)，表明疫情期間Log_Audience顯著增加。
+Temp_Winter (冬季溫度): 0.0049，顯著 (P值為 0.000)，表明冬季溫度增加會顯著增加Log_Audience。
+Rain_Spring (春季降雨): -0.0044，顯著 (P值為 0.012)，表明春季降雨會顯著降低Log_Audience。
+Rain_Winter (冬季降雨): -0.0049，顯著 (P值為 0.011)，表明冬季降雨會顯著降低Log_Audience。
+PlayYear (上映年份): -0.2478，顯著 (P值為 0.000)，表明隨著年份增加，Log_Audience顯著降低。
+No_Budget: 1.3816，顯著 (P值為 0.000)，表明沒有預算的影片Log_Audience顯著增加。
+No_IMDb: 0.1616，顯著 (P值為 0.010)，表明沒有 IMDb 評分的影片Log_Audience顯著增加。
+No_GHA: -0.2842，顯著 (P值為 0.000)，表明沒有金馬獎提名的影片Log_Audience顯著降低。
+No_TFF: -0.2111，顯著 (P值為 0.000)，表明沒有台北電影節提名的影片Log_Audience顯著降低。
+TFF_NomData: -0.1940，顯著 (P值為 0.000)，表明台北電影節提名數據的影片Log_Audience顯著降低。
+No_Weather: -0.1940，顯著 (P值為 0.000)，表明沒有天氣數據的影片Log_Audience顯著降低。
+Subsidy_Yes: 1.5471，顯著 (P值為 0.000)，表明有補助的影片Log_Audience顯著增加。
+Subsidy_Yes
+: 0.0317，顯著 (P值為 0.000)，表明有補助且預算對數增加會顯著增加Log_Audience。
+Subsidy_Yes
+: -0.1116，顯著 (P值為 0.000)，表明有補助且補助金對數增加會顯著降低Log_Audience。
+不顯著變數
+Rainfall (降雨量): 係數為 -0.0008，不顯著 (P值為 0.226)。
+Actor_Awardall (演員獲獎總數): 係數為 -0.0934，不顯著 (P值為 0.151)。
+Drama_Comedy (戲劇與喜劇): 係數為 0.0259，不顯著 (P值為 0.305)。
+Action_Comedy (動作與喜劇): 係數為 -0.0150，不顯著 (P值為 0.844)。
+Promotion (促銷): 係數為 0.0133，不顯著 (P值為 0.737)。
+Temp_Spring (春季溫度): 係數為 -3.146e-05，不顯著 (P值為 0.980)。
+Temp_Summer (夏季溫度): 係數為 0.0005，不顯著 (P值為 0.669)。
+Rain_Summer (夏季降雨): 係數為 0.0024，不顯著 (P值為 0.060)。
+總結
+顯著變數對於較低的Log_Audience有顯著影響，這些變數包括週末上映、預算、IMDb評分、金馬獎提名數量、台北電影節提名數量等。
+不顯著變數則對於Log_Audience的影響較小或沒有顯著影響。
+政策、節日和疫情在較低的觀眾數量情況下顯著增加了Log_Audience，顯示這些事件對於吸引觀眾有積極作用。
+
+0.5 分量回歸結果解釋
+模型信息
+Pseudo R-squared: 0.09568，表示模型對數據的擬合程度。
+Bandwidth: 0.1632，表示模型使用的帶寬。
+No. Observations: 74232，表示觀察樣本數。
+Df Model: 38，表示模型中變數的數量。
+
+顯著變數
+
+Intercept (截距): 296.6313，顯著 (P值為 0.000)，表示基礎的 Log_Audience 水平。
+Play_nWeek (上映週數): -0.0161，顯著 (P值為 0.001)，表明上映週數對Log_Audience有顯著的負面影響。
+Weekend (週末): 0.6699，顯著 (P值為 0.000)，表明在週末上映會顯著增加Log_Audience，特別是在中等的觀眾數量下。
+lnbudget (預算的對數): 0.1596，顯著 (P值為 0.000)，表明預算的對數增加會顯著增加Log_Audience。
+Director_Award (導演獲獎): -0.0990，顯著 (P值為 0.000)，表明導演獲獎對Log_Audience有顯著的負面影響。
+Producer_Famous (知名製片人): -0.1466，顯著 (P值為 0.000)，表明知名製片人對Log_Audience有顯著的負面影響。
+Actor_Awardall (演員獲獎總數): -0.1308，顯著 (P值為 0.033)，表明演員獲獎總數對Log_Audience有顯著的負面影響。
+IMDb_rating (IMDb評分): 0.1014，顯著 (P值為 0.000)，表明較高的 IMDb 評分會顯著增加Log_Audience。
+GHA_Nom (金馬獎提名數量): 0.0293，顯著 (P值為 0.000)，表明金馬獎提名數量增加會顯著增加Log_Audience。
+TFF_Nom (台北電影節提名數量): 0.0287，顯著 (P值為 0.000)，表明台北電影節提名數量增加會顯著增加Log_Audience。
+TFF_AwardTotal (台北電影節獲獎總數): -0.0356，顯著 (P值為 0.000)，表明台北電影節獲獎總數增加會顯著降低Log_Audience。
+lnsubsidy (補助金的對數): -0.1575，顯著 (P值為 0.000)，表明補助金的對數增加會顯著降低Log_Audience。
+CSP: 0.3107，顯著 (P值為 0.000)，表明這段期間對Log_Audience有顯著的正向影響。
+SD: -1.4777，顯著 (P值為 0.000)，表明這段期間對Log_Audience有顯著的負向影響。
+SpecialCondition (特殊情況): 0.2033，顯著 (P值為 0.000)，表明特殊情況對Log_Audience有顯著的正向影響。
+Action_Comedy (動作與喜劇): 0.1834，顯著 (P值為 0.008)，表明動作與喜劇對Log_Audience有顯著的正向影響。
+Typhoon (颱風): -0.1464，顯著 (P值為 0.000)，表明颱風期間Log_Audience顯著下降。
+Earthquake (地震): 1.056e-08，顯著 (P值為 0.006)，表明地震期間Log_Audience顯著下降。
+Policy (政策): 300.5752，顯著 (P值為 0.000)，表明政策期間Log_Audience顯著增加。
+Festival (節日): 0.1757，顯著 (P值為 0.000)，表明節日期間Log_Audience顯著增加。
+Pandemic (疫情): 0.3131，顯著 (P值為 0.000)，表明疫情期間Log_Audience顯著增加。
+Temp_Spring (春季溫度): -0.0032，顯著 (P值為 0.006)，表明春季溫度對Log_Audience有顯著的負面影響。
+Rain_Summer (夏季降雨): 0.0025，顯著 (P值為 0.035)，表明夏季降雨對Log_Audience有顯著的正向影響。
+Rain_Winter (冬季降雨): -0.0069，顯著 (P值為 0.000)，表明冬季降雨對Log_Audience有顯著的負面影響。
+PlayYear (上映年份): -0.2956，顯著 (P值為 0.000)，表明隨著年份增加，Log_Audience顯著降低。
+No_Budget: 2.2533，顯著 (P值為 0.000)，表明沒有預算的影片Log_Audience顯著增加。
+No_IMDb: 0.1839，顯著 (P值為 0.001)，表明沒有 IMDb 評分的影片Log_Audience顯著增加。
+No_GHA: -0.3387，顯著 (P值為 0.000)，表明沒有金馬獎提名的影片Log_Audience顯著降低。
+No_TFF: -0.2302，顯著 (P值為 0.000)，表明沒有台北電影節提名的影片Log_Audience顯著降低。
+TFF_NomData: -0.1826，顯著 (P值為 0.000)，表明台北電影節提名數據的影片Log_Audience顯著降低。
+No_Weather: -0.2793，顯著 (P值為 0.000)，表明沒有天氣數據的影片Log_Audience顯著降低。
+Subsidy_Yes: 2.2497，顯著 (P值為 0.000)，表明有補助的影片Log_Audience顯著增加。
+Subsidy_Yes
+: 0.0570，顯著 (P值為 0.000)，表明有補助且預算對數增加會顯著增加Log_Audience。
+Subsidy_Yes
+: -0.1575，顯著 (P值為 0.000)，表明有補助且補助金對數增加會顯著降低Log_Audience。
+
+不顯著變數
+Rainfall (降雨量): 係數為 -0.0009，不顯著 (P值為 0.167)。
+Drama_Comedy (戲劇與喜劇): 係數為 -0.0211，不顯著 (P值為 0.367)。
+Promotion (促銷): 係數為 0.0126，不顯著 (P值為 0.726)。
+Temp_Summer (夏季溫度): 係數為 -0.0003，不顯著 (P值為 0.783)。
+Temp_Winter (冬季溫度): 係數為 0.0018，不顯著 (P值為 0.148)。
+Rain_Spring (春季降雨): 係數為 -0.0007，不顯著 (P值為 0.683)。
+
+總結
+顯著變數對於中等的Log_Audience有顯著影響，這些變數包括週末上映、預算、IMDb評分、金馬獎提名數量、台北電影節提名數量等。
+不顯著變數則對於Log_Audience的影響較小或沒有顯著影響。
+政策、節日和疫情在中等的觀眾數量情況下顯著增加了Log_Audience，顯示這些事件對於吸引觀眾有積極作用。
+

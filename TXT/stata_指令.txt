@@ -1,0 +1,24 @@
+gen audience_sq = audience^2
+
+reg imdb_rating audience audience_sq weekend cutback moviefest class_darma class_comedy class_action class_documentary class_animation class_other movie_length director_award producer_famous actor_awardall view_afhorse view_aftaipei year_2018 year_2019 year_2020 year_2021 year_2022 month_2 month_3 month_4 month_5 month_6 month_7 month_8 month_9 month_10 month_11 view_week_2 view_week_3 view_week_4 view_week_58 view_week_912 theater_1 theater_2 theater_3 rate_1 rate_2 rate_3 distributor_1 distributor_2, robust
+
+
+gen ln_audience = log(audience)
+gen ln_audience_sq = log(audience)^2
+
+reg  imdb_rating ln_audience weekend cutback moviefest class_darma class_comedy class_action class_documentary class_animation class_other movie_length director_award producer_famous actor_awardall view_afhorse view_aftaipei year_2018 year_2019 year_2020 year_2021 year_2022 month_2 month_3 month_4 month_5 month_6 month_7 month_8 month_9 month_10 month_11 view_week_1 view_week_2 view_week_3 view_week_4 view_week_58 view_week_912 theater_1 theater_2 theater_3 rate_1 rate_2 rate_3 distributor_1 distributor_2, robust
+
+reg imdb_rating ln_audience weekend cutback moviefest class_darma class_comedy class_action class_documentary class_animation class_other movie_length director_award producer_famous actor_awardall view_afhorse view_aftaipei year_2018 year_2019 year_2020 year_2021 year_2022 month_2 month_3 month_4 month_5 month_6 month_7 month_8 month_9 month_10 month_11 view_week_1 view_week_2 view_week_3 view_week_4   theater_1 theater_2  rate_1 rate_2 rate_3 distributor_1 , robust
+
+
+display e(r2_a)
+
+stset viewday, failure(audience == 0)
+sts graph, by(MovieGenre) // 生成不同類型電影的生存曲線
+stcox MovieGenre Director_Award Producer_Famous ... // Cox 回歸
+
+gen awarded = (gha_view_code == 4 | tff_view_dode == 4)
+xtset playid viewday
+xtreg audience i.awarded##i.PostEvent, fe // 固定效應模型
+
+CLASS_DARMA', 'CLASS_COMEDY', 'CLASS_ACTION', 'CLASS_DOCUMENTARY', 'CLASS_ANIMATION', 'CLASS_OTHER', 'MOVIE_LENGTH', 'DIRECTOR_AWARD', 'PRODUCER_FAMOUS', 'ACTOR_AWARDALL', 'YEAR_2018', 'YEAR_2019', 'YEAR_2020', 'YEAR_2021', 'YEAR_2022', 'MONTH_2', 'MONTH_3', 'MONTH_4', 'MONTH_5', 'MONTH_6', 'MONTH_7', 'MONTH_8', 'MONTH_9', 'MONTH_10', 'MONTH_11', 'VIEW_WEEK_1', 'VIEW_WEEK_2', 'VIEW_WEEK_3', 'VIEW_WEEK_4', 'THEATER_1', 'THEATER_2', 'RATE_1', 'RATE_2', 'RATE_3', 'DISTRIBUTOR_1

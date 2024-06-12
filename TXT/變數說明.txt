@@ -1,0 +1,98 @@
+變數名稱_英文	變數名稱_中文	備註		
+PlayID	播映編碼			
+MovieID	電影編碼			
+PlayWeek	播映星期	星期日為1		
+Weekend	播映日為週末	1：播映日為星期五六日；0：播映日為星期一～四		
+Play_nWeek	播映週次			
+PlayMonth	播映月份			
+PlayYear	播映年份			
+ViewDay	播映天數	上映後第幾日播映，上映日為0		
+CutBack	是否為重映片			
+GHA_View_Code	金馬獎播映階段	1:無入圍獲獎，2:入圍前播映，3:入圍至獲獎間播映，4:獲獎後播映		
+TFF_View_Code	台北電影節播映階段	1:無入圍獲獎，2:入圍前播映，3:入圍至獲獎間播映，4:獲獎後播映		
+Theater_Class	戲院分類	1：連鎖特殊，2：連鎖非特殊，3: 非連鎖特殊　4：非連鎖非特殊，5：藝術	
+Audience	該日票數			
+Tempture	氣溫			
+Rainfall	降雨		
+No_Weather	天氣資料缺值			
+MovieFest　是否為影展片			
+Rated	台灣分級	1：普，2：護，3：輔12，4：輔15，5：限		
+Class_Darma	電影類型_劇情			
+Class_Comedy	電影類型_喜劇			
+Class_Action	電影類型_動作			
+Class_Documentary	電影類型_紀錄			
+Class_Animation	電影類型_動畫			
+Class_Other	電影類型_其他			
+Class_#N/A	電影類型_缺值			
+Movie_Length	片長（分鐘）			
+No_Movie_Length	片長缺值			
+Director_Award	導演過去獲獎總數			
+Producer_Famous	是否為知名製片製作			
+Distrbutor	發行商分類：1. 垂直整合發行商（威秀影城、秀泰、中影、龍祥、威視、威望、原創）、2. ：好萊塢（福斯、迪士尼、索尼、華納、UIP、博偉)、 3.：車庫娛樂	
+Budget: : 預算（美金）			
+No_Budget	預算缺值			
+Actor_Awardall	演員過去獲獎總數			
+Subsidy_Amount	補助金額（萬元新台幣）			
+Subsidy_Yes	有獲得補助			
+IMDb_rating	　IMDb評分			
+No_IMDb	　IMDb缺值			
+Oscar_Nom	奧斯卡獎入圍獎項數			
+Oscar_AwardTotal	奧斯卡獎獲獎獎項數			
+No_Oscar	奧斯卡缺值			
+Cannes_Nom	是否入圍坎城影獎			
+Cannes_AwardTotal	坎城影獎獲獎獎項數			
+No_Cannes	坎城影獎缺值			
+GHA_Nom	金馬獎入圍獎項數			
+GHA_AwardTotal	金馬獎獲獎獎項數			
+No_GHA	金馬獎缺值			
+TFF_Nom	台北電影節入圍獎項數			
+TFF_AwardTotal	台北電影節獲獎獎項數			
+No_TFF	台北電影節缺值			
+TFF_NomData	台北電影節入圍資料揭露與否			
+view_afhorse	金馬獎入圍後放映			
+view_aftaipei	台北電影節入圍後放映			
+year_2018	2018年播映			
+year_2019	2019年播映			
+year_2020	2020年播映			
+year_2021	2021年播映			
+year_2022	2022年播映			
+month_2	2月播映			
+month_3	3月播映			
+month_4	4月播映			
+month_5	5月播映			
+month_6	6月播映			
+month_7	7月播映			
+month_8	8月播映			
+month_9	9月播映			
+month_10	10月播映			
+month_11	11月播映			
+month_12	12月播映			
+view_week_1	上映首週			
+view_week_2	上映第二週			
+view_week_3	上映第三週			
+view_week_4	上映第四週			
+view_week_58	上映後四到八週			
+view_week_912	上映後八到十二週			
+theater_1	連鎖特殊電影院			
+theater_2	連鎖非特殊電影院			
+theater_3	非連鎖特殊電影院			
+theater_4	非連鎖非特殊電影院			
+rate_1	普遍級			
+rate_2	保護級			
+rate_3	輔導12級			
+rate_4	輔導15級			
+distributor_1	垂直整合發行商			
+distributor_2	好萊塢發行商			
+distributor_3	車庫娛樂發行商			
+lnsubsidy				
+lnbudget				
+
+這是變數說明表　
+
+台灣國定假日：春節、寒假、清明節連假、端午節連假、暑假、中秋節連假、國慶雙十節連假、聖誕節、跨年）
+特殊情況：學生期中期末考後、學生段考後、颱風（可以看天氣變數Tempture、Rainfall）、地震天災、知名電影續集如：變形金剛、玩命關頭、復仇者聯盟等等
+
+交乘項考慮：電影類型可能重複（比如說同時為動作片和劇情片）、 或是同時獲得很多獎項？ 、 有沒有補助和補助金額？
+DID：探討疫情前疫情後的差異
+分量迴歸：處理不同分量的票房
+共線性處理：把共線但是重要的分開跑回歸

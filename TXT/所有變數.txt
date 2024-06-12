@@ -1,0 +1,7 @@
+缺失值
+variables = [
+    'No_Movie_Length', 'No_Budget', 'No_IMDb', 'No_Oscar', 'Class_#N/A',
+    'No_Cannes', 'No_GHA', 'No_TFF', 'TFF_NomData', 'No_Weather', 'Subsidy_Yes'
+]
+
+xtreg imdb_rating audience playweek weekend play_nweek playmonth viewday cutback gha_view_code tff_view_code theater_class tempture rainfall moviefest rated class_darma class_comedy class_action class_documentary class_animation class_other movie_length director_award producer_famous distrbutor actor_awardall oscar_nom oscar_awardtotal cannes_nom cannes_awardtotal gha_nom gha_awardtotal tff_nom tff_awardtotal view_afhorse view_aftaipei year_2018 year_2019 year_2020 year_2021 year_2022 month_2 month_3 month_4 month_5 month_6 month_7 month_8 month_9 month_10 month_11 month_12 view_week_1 view_week_2 view_week_3 view_week_4 view_week_58 view_week_912 theater_1 theater_2 theater_3 theater_4 rate_1 rate_2 rate_3 rate_4 distributor_1 distributor_2 distributor_3 lnsubsidy lnbudget
